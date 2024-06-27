@@ -2,7 +2,7 @@
   <div>
     <el-row :gutter="20" justify="space-between" style="margin-bottom: 20px;">
       <!-- 搜索和筛选栏 -->
-      <el-col :span="8">
+      <el-col :span="9">
         <el-select v-model="selectedCourse" placeholder="请输入或选择课程名称">
           <el-option
             v-for="course in courses"
@@ -12,12 +12,15 @@
           </el-option>
         </el-select>
       </el-col>
-      <el-col :span="4">
+      <el-col :span="6">
         <el-button type="primary" @click="fetchEvaluations">查询</el-button>
         <el-button @click="resetFilters">清空</el-button>
+        <el-button type="primary" @click="addEvaluation">新增评价</el-button>
       </el-col>
+
+
       <!-- 统计信息 -->
-      <el-col :span="10" justify="end">
+      <el-col :span="9" justify="end">
         <el-card>
           <div class="rating-overview">
             <div class="average-rating">
@@ -52,6 +55,12 @@
         </template>
       </el-table-column>
       <el-table-column prop="comments" label="意见和建议"></el-table-column>
+      <el-table-column label="操作" width="180">
+        <template v-slot="scope">
+          <el-button type="text" size="small" @click="editEvaluation(scope.row)">编辑</el-button>
+          <el-button type="text" size="small" @click="deleteEvaluation(scope.row)">删除</el-button>
+        </template>
+      </el-table-column>
     </el-table>
 
     <!-- 分页功能 -->
@@ -65,11 +74,15 @@
       @size-change="handleSizeChange"
       @current-change="handleCurrentChange">
     </el-pagination>
+
+    <!-- 评价表单对话框 -->
+    <EvaluationForm ref="evaluationForm" @refresh="fetchEvaluations" />
   </div>
 </template>
 
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue';
+import EvaluationForm from '../views/form/EvaluationForm.vue';
 
 const searchQuery = ref('');
 const selectedCourse = ref(null);
@@ -104,6 +117,8 @@ const evaluationsData = reactive({
     { id: '5', studentName: '周五', courseName: 'React.js进阶', rating: 4, comments: '满意', submitTime: '2024-06-01T14:00:00' },
   ]
 });
+
+const evaluationForm = ref(null);
 
 const fetchEvaluations = () => {
   console.log(`Fetching evaluations for course: ${selectedCourse.value || ''}`);
@@ -145,6 +160,20 @@ const ratingPercentages = computed(() => {
   });
   return counts.map(count => ((count / total) * 100).toFixed(1));
 });
+
+const addEvaluation = () => {
+  evaluationForm.value.openForm();
+};
+
+
+const editEvaluation = (evaluation) => {
+  evaluationForm.value.openForm(evaluation);
+};
+
+const deleteEvaluation = (evaluation) => {
+  console.log('Delete evaluation', evaluation);
+  // 删除评价的逻辑
+};
 
 const formatDate = (dateString) => {
   const options = { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' };

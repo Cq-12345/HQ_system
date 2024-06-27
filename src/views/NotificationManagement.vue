@@ -23,7 +23,7 @@
       <el-col :span="10" style="text-align: right;">
         <el-button type="primary" @click="fetchNotifications">查询</el-button>
         <el-button @click="resetFilters">清空</el-button>
-        <el-button type="primary" @click="addNotification">新增通知</el-button>
+        <el-button type="primary" @click="openAddNotificationForm">新增通知</el-button>
       </el-col>
     </el-row>
 
@@ -48,8 +48,8 @@
       </el-table-column>
       <el-table-column label="操作">
         <template v-slot="scope">
-          <el-button type="text" size="small" @click="viewNotification(scope.row)">查看</el-button>
-          <el-button type="text" size="small" @click="editNotification(scope.row)">编辑</el-button>
+          <el-button type="text" size="small" @click="openViewNotificationForm(scope.row)">查看</el-button>
+          <el-button type="text" size="small" @click="openEditNotificationForm(scope.row)">编辑</el-button>
           <el-button type="text" size="small" @click="deleteNotification(scope.row)">删除</el-button>
           <el-button type="text" size="small" @click="sendEmail(scope.row)" v-if="scope.row.type === 'course'">发送邮件</el-button>
         </template>
@@ -69,63 +69,13 @@
     </el-pagination>
 
     <!-- 通知详情对话框 -->
-    <el-dialog v-model:visible="detailDialogVisible" title="通知详情">
-      <el-form :model="selectedNotification" label-width="120px">
-        <el-form-item label="课程名称">
-          <el-input v-model="selectedNotification.courseName" readonly></el-input>
-        </el-form-item>
-        <el-form-item label="通知内容">
-          <el-input v-model="selectedNotification.content" type="textarea" readonly></el-input>
-        </el-form-item>
-        <el-form-item label="状态">
-          <el-select v-model="selectedNotification.status" disabled>
-            <el-option label="待发送" value="pending"></el-option>
-            <el-option label="已发送" value="sent"></el-option>
-          </el-select>
-        </el-form-item>
-        <el-form-item label="发送时间">
-          <el-date-picker v-model="selectedNotification.sendTime" type="datetime" readonly></el-date-picker>
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <div class="dialog-footer">
-          <el-button @click="detailDialogVisible = false">关闭</el-button>
-        </div>
-      </template>
-    </el-dialog>
-
-    <!-- 新建和编辑通知对话框 -->
-    <el-dialog v-model:visible="editDialogVisible" title="编辑通知">
-      <el-form :model="selectedNotification" label-width="120px">
-        <el-form-item label="课程名称">
-          <el-input v-model="selectedNotification.courseName"></el-input>
-        </el-form-item>
-        <el-form-item label="通知内容">
-          <el-input v-model="selectedNotification.content" type="textarea"></el-input>
-        </el-form-item>
-        <el-form-item label="状态">
-          <el-select v-model="selectedNotification.status">
-            <el-option label="待发送" value="pending"></el-option>
-            <el-option label="已发送" value="sent"></el-option>
-          </el-select>
-        </el-form-item>
-        <el-form-item label="发送时间">
-          <el-date-picker v-model="selectedNotification.sendTime" type="datetime"></el-date-picker>
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <div class="dialog-footer">
-          <el-button @click="editDialogVisible = false">取消</el-button>
-          <el-button type="primary" @click="saveNotification">保存</el-button>
-        </div>
-      </template>
-    </el-dialog>
-
+    <NotificationForm ref="notificationForm" @refresh="fetchNotifications" />
   </div>
 </template>
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue';
+import NotificationForm from '../views/form/NotificationForm.vue';
 
 const searchQuery = ref('');
 const filterType = ref('');
@@ -141,17 +91,7 @@ const notifications = reactive([
   { id: '3', type: 'reminder', courseName: 'Angular基础', content: '别忘了参加Angular基础课程', status: 'sent', sendTime: '2024-07-02T08:00:00' },
 ]);
 
-const selectedNotification = reactive({
-  id: '',
-  type: '',
-  courseName: '',
-  content: '',
-  status: '',
-  sendTime: '',
-});
-
-const detailDialogVisible = ref(false);
-const editDialogVisible = ref(false);
+const notificationForm = ref(null);
 
 const fetchNotifications = () => {
   console.log(`Fetching notifications with query: ${searchQuery.value}, type: ${filterType.value}, status: ${filterStatus.value}`);
@@ -165,27 +105,16 @@ const resetFilters = () => {
   fetchNotifications();
 };
 
-const addNotification = () => {
-  console.log('Add new notification');
-  selectedNotification.id = '';
-  selectedNotification.type = 'course';
-  selectedNotification.courseName = '';
-  selectedNotification.content = '';
-  selectedNotification.status = 'pending';
-  selectedNotification.sendTime = new Date().toISOString().substr(0, 16);
-  editDialogVisible.value = true;
+const openAddNotificationForm = () => {
+  notificationForm.value.openForm();
 };
 
-const viewNotification = (notification) => {
-  console.log('View notification', notification);
-  Object.assign(selectedNotification, notification);
-  detailDialogVisible.value = true;
+const openViewNotificationForm = (notification) => {
+  notificationForm.value.openForm(notification, true);
 };
 
-const editNotification = (notification) => {
-  console.log('Edit notification', notification);
-  Object.assign(selectedNotification, notification);
-  editDialogVisible.value = true;
+const openEditNotificationForm = (notification) => {
+  notificationForm.value.openForm(notification);
 };
 
 const deleteNotification = (notification) => {

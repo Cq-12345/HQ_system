@@ -11,23 +11,18 @@
       </el-col>
       <el-col :span="12" style="text-align: right;">
         <el-button type="danger" @click="deleteSelected">批量删除</el-button>
-        <el-button type="primary" @click="addStudent">新增学员</el-button>
+        <el-button type="primary" @click="openAddStudentForm">新增学员</el-button>
       </el-col>
     </el-row>
 
     <el-table :data="students" border>
       <el-table-column type="selection" width="55"></el-table-column>
       <el-table-column prop="name" label="姓名" sortable width="120"></el-table-column>
-      <el-table-column prop="avatar" label="头像" width="120">
-        <template v-slot="scope">
-          <el-avatar :src="scope.row.avatar || '/logo.jpg'"></el-avatar>
-        </template>
-      </el-table-column>
       <el-table-column prop="gender" label="性别" sortable width="100"></el-table-column>
       <el-table-column prop="contact" label="联系方式" sortable width="150"></el-table-column>
       <el-table-column label="操作">
         <template v-slot="scope">
-          <el-button type="text" size="small" @click="editStudent(scope.row)">编辑</el-button>
+          <el-button type="text" size="small" @click="openEditStudentForm(scope.row)">编辑</el-button>
           <el-button type="text" size="small" @click="deleteStudent(scope.row)">删除</el-button>
         </template>
       </el-table-column>
@@ -43,12 +38,16 @@
       @size-change="handleSizeChange"
       @current-change="handleCurrentChange">
     </el-pagination>
+
+    <!-- 引入StudentForm组件 -->
+    <StudentForm ref="studentForm" @refresh="fetchData" />
   </div>
 </template>
+
 <script setup>
 import { ref, reactive, onMounted } from 'vue';
+import StudentForm from '../views/form/StudentForm.vue';
 
-const activeMenu = ref('StudentManagement');
 const searchName = ref('');
 const pageSize = ref(5);
 const currentPage = ref(1);
@@ -56,13 +55,15 @@ const totalStudents = ref(0);
 
 const students = reactive([
   // 示例数据
-  { id: '1', name: '张三', gender: '男', contact: '12345678901', avatar: '' },
-  { id: '2', name: '李四', gender: '女', contact: '09876543210', avatar: '' },
+  { id: '1', name: '张三', gender: '男', contact: '12345678901' },
+  { id: '2', name: '李四', gender: '女', contact: '09876543210' },
 ]);
+
+const studentForm = ref(null);
 
 const fetchData = () => {
   console.log(`Fetching data with name: ${searchName.value}`);
-  // 调用 API 获取数据，并更新 students
+  // 调用 API 获取数据，并更新 students 和 totalStudents
 };
 
 const resetSearch = () => {
@@ -70,14 +71,12 @@ const resetSearch = () => {
   fetchData();
 };
 
-const addStudent = () => {
-  console.log('Add new student');
-  // 打开新增学员的对话框
+const openAddStudentForm = () => {
+  studentForm.value.openForm();
 };
 
-const editStudent = (student) => {
-  console.log('Edit student', student);
-  // 打开编辑学员的对话框
+const openEditStudentForm = (student) => {
+  studentForm.value.openForm(student);
 };
 
 const deleteStudent = (student) => {
@@ -104,28 +103,25 @@ const handleCurrentChange = (page) => {
 </script>
 
 <style scoped>
-.el-header {
-  background-color: #409EFF;
-  color: white;
-}
-
-.el-menu-vertical-demo {
-  background-color: #2d3a4b;
-}
-
-.el-menu-item {
-  color: white;
-}
-
-.el-main {
-  padding: 20px;
-  background-color: #f0f2f5;
-}
-
 .box {
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+.box .text {
+  display: flex;
+  align-items: center;
+}
+
+.box .item i {
+  font-size: 24px;
+  margin-right: 10px;
+}
+
+.count {
+  font-size: 24px;
+  color: #409EFF;
 }
 
 .btn {

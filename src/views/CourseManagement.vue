@@ -11,7 +11,7 @@
       </el-col>
       <el-col :span="12" style="text-align: right;">
         <el-button type="danger" @click="deleteSelected">批量删除</el-button>
-        <el-button type="primary" @click="addCourse">新增课程</el-button>
+        <el-button type="primary" @click="openAddCourseForm">新增课程</el-button>
       </el-col>
     </el-row>
 
@@ -31,7 +31,7 @@
       <el-table-column prop="lecturerName" label="讲师" sortable width="120"></el-table-column>
       <el-table-column label="操作">
         <template v-slot="scope">
-          <el-button type="text" size="small" @click="editCourse(scope.row)">编辑</el-button>
+          <el-button type="text" size="small" @click="openEditCourseForm(scope.row)">编辑</el-button>
           <el-button type="text" size="small" @click="deleteCourse(scope.row)">删除</el-button>
         </template>
       </el-table-column>
@@ -47,11 +47,15 @@
       @size-change="handleSizeChange"
       @current-change="handleCurrentChange">
     </el-pagination>
+
+    <!-- 引入CourseForm组件 -->
+    <CourseForm ref="courseForm" @refresh="fetchData" />
   </div>
 </template>
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue';
+import CourseForm from '../views/form/CourseForm.vue';
 
 const searchName = ref('');
 const pageSize = ref(5);
@@ -74,14 +78,14 @@ const resetSearch = () => {
   fetchData();
 };
 
-const addCourse = () => {
-  console.log('Add new course');
-  // 打开新增课程的对话框
+const courseForm = ref(null);
+
+const openAddCourseForm = () => {
+  courseForm.value.openForm();
 };
 
-const editCourse = (course) => {
-  console.log('Edit course', course);
-  // 打开编辑课程的对话框
+const openEditCourseForm = (course) => {
+  courseForm.value.openForm(course);
 };
 
 const deleteCourse = (course) => {

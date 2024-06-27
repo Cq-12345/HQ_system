@@ -11,7 +11,7 @@
       </el-col>
       <el-col :span="12" style="text-align: right;">
         <el-button type="danger" @click="deleteSelected">批量删除</el-button>
-        <el-button type="primary" @click="addLecturer">新增讲师</el-button>
+        <el-button type="primary" @click="openAddLecturerForm">新增讲师</el-button>
       </el-col>
     </el-row>
 
@@ -24,7 +24,7 @@
       <el-table-column prop="phone" label="电话" sortable width="150"></el-table-column>
       <el-table-column label="操作">
         <template v-slot="scope">
-          <el-button type="text" size="small" @click="editLecturer(scope.row)">编辑</el-button>
+          <el-button type="text" size="small" @click="openEditLecturerForm(scope.row)">编辑</el-button>
           <el-button type="text" size="small" @click="deleteLecturer(scope.row)">删除</el-button>
         </template>
       </el-table-column>
@@ -40,11 +40,15 @@
       @size-change="handleSizeChange"
       @current-change="handleCurrentChange">
     </el-pagination>
+
+    <!-- 引入LecturerForm组件 -->
+    <LecturerForm ref="lecturerForm" @refresh="fetchData" />
   </div>
 </template>
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue';
+import LecturerForm from '../views/form/LectureForm.vue';
 
 const searchName = ref('');
 const pageSize = ref(5);
@@ -57,6 +61,8 @@ const lecturers = reactive([
   { id: '2', name: '李芳', title: '讲师', expertise: '前端开发', email: 'lifang@example.com', phone: '09876543210' },
 ]);
 
+const lecturerForm = ref(null);
+
 const fetchData = () => {
   console.log(`Fetching data with name: ${searchName.value}`);
   // 调用 API 获取数据，并更新 lecturers 和 totalLecturers
@@ -67,14 +73,12 @@ const resetSearch = () => {
   fetchData();
 };
 
-const addLecturer = () => {
-  console.log('Add new lecturer');
-  // 打开新增讲师的对话框
+const openAddLecturerForm = () => {
+  lecturerForm.value.openForm();
 };
 
-const editLecturer = (lecturer) => {
-  console.log('Edit lecturer', lecturer);
-  // 打开编辑讲师的对话框
+const openEditLecturerForm = (lecturer) => {
+  lecturerForm.value.openForm(lecturer);
 };
 
 const deleteLecturer = (lecturer) => {

@@ -18,6 +18,7 @@
       </el-col>
       <el-col :span="10" style="text-align: right;">
         <el-button type="primary" @click="saveToExcel">保存到Excel</el-button>
+        <el-button type="primary" @click="openAddEnrollmentForm">新增报名</el-button>
       </el-col>
     </el-row>
 
@@ -25,8 +26,8 @@
     <el-table :data="enrollments" border>
       <el-table-column prop="studentName" label="姓名" width="80"></el-table-column>
       <el-table-column prop="gender" label="性别" width="60"></el-table-column>
-      <el-table-column prop="courseName" label="课程名称" width="150"></el-table-column>
-      <el-table-column prop="company" label="公司名称" width="150"></el-table-column>
+      <el-table-column prop="courseName" label="课程名称" width="120"></el-table-column>
+      <el-table-column prop="company" label="公司名称" width="120"></el-table-column>
       <el-table-column prop="position" label="工作岗位" width="120"></el-table-column>
       <el-table-column prop="skillLevel" label="技术水平" width="90"></el-table-column>
       <el-table-column prop="contact" label="联系方式" width="135"></el-table-column>
@@ -43,6 +44,7 @@
       <el-table-column label="操作">
         <template v-slot="scope">
           <el-button type="text" size="small" @click="confirmEnrollment(scope.row)">确认</el-button>
+          <el-button type="text" size="small" @click="openEditEnrollmentForm(scope.row)">编辑</el-button>
           <el-button type="text" size="small" @click="deleteEnrollment(scope.row)">删除</el-button>
         </template>
       </el-table-column>
@@ -59,11 +61,15 @@
       @size-change="handleSizeChange"
       @current-change="handleCurrentChange">
     </el-pagination>
+
+    <!-- 报名表单对话框 -->
+    <EnrollmentForm ref="enrollmentForm" @refresh="fetchEnrollments" />
   </div>
 </template>
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue';
+import EnrollmentForm from '../views/form/EnrollmentForm.vue';
 
 const searchQuery = ref('');
 const filterStatus = ref('');
@@ -76,6 +82,8 @@ const enrollments = reactive([
   { id: '1', studentName: '张三', gender: '男', courseName: 'Vue.js入门', company: '公司A', position: '开发工程师', skillLevel: '中级', contact: '12345678901', fillTime: '2024-06-01T10:00:00', status: 'pending' },
   { id: '2', studentName: '李四', gender: '女', courseName: 'React.js进阶', company: '公司B', position: '高级工程师', skillLevel: '高级', contact: '09876543210', fillTime: '2024-06-02T11:00:00', status: 'confirmed' },
 ]);
+
+const enrollmentForm = ref(null);
 
 const fetchEnrollments = () => {
   console.log(`Fetching enrollments with query: ${searchQuery.value}, status: ${filterStatus.value}`);
@@ -102,6 +110,14 @@ const deleteEnrollment = (enrollment) => {
 const saveToExcel = () => {
   console.log('Save enrollments to Excel');
   // 保存报名信息到 Excel 的逻辑
+};
+
+const openAddEnrollmentForm = () => {
+  enrollmentForm.value.openForm();
+};
+
+const openEditEnrollmentForm = (enrollment) => {
+  enrollmentForm.value.openForm(enrollment);
 };
 
 const handleSizeChange = (size) => {

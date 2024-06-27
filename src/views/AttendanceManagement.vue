@@ -63,11 +63,15 @@
       @size-change="handleSizeChange"
       @current-change="handleCurrentChange">
     </el-pagination>
+
+    <!-- 签到表单 -->
+    <attendance-form ref="attendanceForm" @refresh="fetchAttendances" />
   </div>
 </template>
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue';
+import AttendanceForm from '../views/form/AttendanceForm.vue';
 
 const searchQuery = ref('');
 const filterStatus = ref('');
@@ -81,6 +85,8 @@ const attendances = reactive([
   { id: '2', studentName: '李四', gender: '女', courseName: 'React.js进阶', company: '公司B', contact: '09876543210', fee: 0, attendanceTime: '2024-06-01T09:00:00', feeStatus: 'no_payment_required', signInStatus: 'signed_in' },
 ]);
 
+const attendanceForm = ref(null);
+
 const fetchAttendances = () => {
   console.log(`Fetching attendances with query: ${searchQuery.value}, status: ${filterStatus.value}`);
   // 调用 API 获取数据，并更新 attendances 和 totalAttendances
@@ -93,10 +99,13 @@ const resetFilters = () => {
 };
 
 const signIn = (attendance) => {
-  console.log('Sign in', attendance);
-  attendance.signInStatus = 'signed_in';
-  attendance.attendanceTime = new Date().toISOString();
+  attendanceForm.value.openForm(attendance);
   // 更新签到信息的逻辑
+};
+
+const addAttendance = () => {
+  console.log('Add new attendance');
+  attendanceForm.value.openForm();
 };
 
 const handleSizeChange = (size) => {
@@ -163,5 +172,29 @@ const getSignInStatusLabel = (status) => {
 </script>
 
 <style scoped>
-/* 样式定义 */
+.box {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.box .text {
+  display: flex;
+  align-items: center;
+}
+
+.box .item i {
+  font-size: 24px;
+  margin-right: 10px;
+}
+
+.count {
+  font-size: 24px;
+  color: #409EFF;
+}
+
+.btn {
+  text-align: right;
+  margin-top: 10px;
+}
 </style>
