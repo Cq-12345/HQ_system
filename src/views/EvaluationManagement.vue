@@ -2,7 +2,7 @@
   <div>
     <el-row :gutter="20" justify="space-between" style="margin-bottom: 20px;">
       <!-- 搜索和筛选栏 -->
-      <el-col :span="9">
+      <el-col :span="8">
         <el-select v-model="selectedCourse" placeholder="请输入或选择课程名称">
           <el-option
             v-for="course in courses"
@@ -12,10 +12,10 @@
           </el-option>
         </el-select>
       </el-col>
-      <el-col :span="6">
+      <el-col :span="7">
         <el-button type="primary" @click="fetchEvaluations">查询</el-button>
-        <el-button @click="resetFilters">清空</el-button>
         <el-button type="primary" @click="addEvaluation">新增评价</el-button>
+        <el-button type="primary" @click="saveToExcel">保存到Excel</el-button>
       </el-col>
 
 
@@ -83,6 +83,9 @@
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue';
 import EvaluationForm from '../views/form/EvaluationForm.vue';
+import * as XLSX from 'xlsx';
+import { saveAs } from 'file-saver';
+
 
 const searchQuery = ref('');
 const selectedCourse = ref(null);
@@ -174,6 +177,24 @@ const deleteEvaluation = (evaluation) => {
   console.log('Delete evaluation', evaluation);
   // 删除评价的逻辑
 };
+
+const saveToExcel = () => {
+  const data = evaluations.value.map(evaluation => ({
+    '课程名称': evaluation.courseName,
+    '学员姓名': evaluation.studentName,
+    '满意度': evaluation.rating,
+    '意见和建议': evaluation.comments,
+    '填写时间': formatDate(evaluation.submitTime)
+  }));
+  
+  const worksheet = XLSX.utils.json_to_sheet(data);
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, '评价信息');
+  const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+  const blob = new Blob([excelBuffer], { type: 'application/octet-stream' });
+  saveAs(blob, 'evaluations.xlsx');
+};
+
 
 const formatDate = (dateString) => {
   const options = { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' };

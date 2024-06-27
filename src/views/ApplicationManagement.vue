@@ -19,6 +19,7 @@
       </el-col>
       <el-col :span="10" style="text-align: right;">
         <el-button type="primary" @click="openAddApplicationForm">新增申请</el-button>
+        <el-button type="primary" @click="exportToExcel">导出为Excel</el-button>
       </el-col>
     </el-row>
 
@@ -66,6 +67,8 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue';
 import ApplicationForm from '../views/form/ApplicationForm.vue';
+import * as XLSX from 'xlsx';
+import { saveAs } from 'file-saver';
 
 const searchQuery = ref('');
 const filterStatus = ref('');
@@ -154,6 +157,19 @@ const getStatusLabel = (status) => {
       return '待审核';
   }
 };
+
+const exportToExcel = () => {
+  const worksheet = XLSX.utils.json_to_sheet(applications);
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, '培训申请数据');
+  const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+  const data = new Blob([excelBuffer], { type: 'application/octet-stream' });
+  saveAs(data, 'applications.xlsx');
+};
+
+onMounted(() => {
+  fetchApplications();
+});
 </script>
 
 <style scoped>

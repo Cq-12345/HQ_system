@@ -70,6 +70,8 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue';
 import EnrollmentForm from '../views/form/EnrollmentForm.vue';
+import * as XLSX from 'xlsx';
+import { saveAs } from 'file-saver';
 
 const searchQuery = ref('');
 const filterStatus = ref('');
@@ -108,8 +110,24 @@ const deleteEnrollment = (enrollment) => {
 };
 
 const saveToExcel = () => {
-  console.log('Save enrollments to Excel');
-  // 保存报名信息到 Excel 的逻辑
+  const data = enrollments.map(enrollment => ({
+    '姓名': enrollment.studentName,
+    '性别': enrollment.gender,
+    '课程名称': enrollment.courseName,
+    '公司名称': enrollment.company,
+    '工作岗位': enrollment.position,
+    '技术水平': enrollment.skillLevel,
+    '联系方式': enrollment.contact,
+    '填写时间': formatDate(enrollment.fillTime),
+    '状态': getStatusLabel(enrollment.status)
+  }));
+  
+  const worksheet = XLSX.utils.json_to_sheet(data);
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, '报名信息');
+  const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+  const blob = new Blob([excelBuffer], { type: 'application/octet-stream' });
+  saveAs(blob, 'enrollments.xlsx');
 };
 
 const openAddEnrollmentForm = () => {

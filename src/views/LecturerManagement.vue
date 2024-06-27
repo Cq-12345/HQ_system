@@ -12,6 +12,7 @@
       <el-col :span="12" style="text-align: right;">
         <el-button type="danger" @click="deleteSelected">批量删除</el-button>
         <el-button type="primary" @click="openAddLecturerForm">新增讲师</el-button>
+        <el-button type="primary" @click="exportToExcel">导出为Excel</el-button>
       </el-col>
     </el-row>
 
@@ -49,6 +50,8 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue';
 import LecturerForm from '../views/form/LectureForm.vue';
+import * as XLSX from 'xlsx';
+import { saveAs } from 'file-saver';
 
 const searchName = ref('');
 const pageSize = ref(5);
@@ -102,6 +105,19 @@ const handleCurrentChange = (page) => {
   currentPage.value = page;
   fetchData();
 };
+
+const exportToExcel = () => {
+  const worksheet = XLSX.utils.json_to_sheet(lecturers);
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, '讲师数据');
+  const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+  const data = new Blob([excelBuffer], { type: 'application/octet-stream' });
+  saveAs(data, 'lecturers.xlsx');
+};
+
+onMounted(() => {
+  fetchData();
+});
 </script>
 
 <style scoped>

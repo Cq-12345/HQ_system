@@ -16,6 +16,9 @@
         <el-button type="primary" @click="fetchAttendances">查询</el-button>
         <el-button @click="resetFilters">清空</el-button>
       </el-col>
+      <el-col :span="10" style="text-align: right;">
+        <el-button type="primary" @click="exportToExcel">导出为Excel</el-button>
+      </el-col>
     </el-row>
 
     <!-- 报名信息列表 -->
@@ -72,6 +75,8 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue';
 import AttendanceForm from '../views/form/AttendanceForm.vue';
+import * as XLSX from 'xlsx';
+import { saveAs } from 'file-saver';
 
 const searchQuery = ref('');
 const filterStatus = ref('');
@@ -169,6 +174,31 @@ const getSignInStatusLabel = (status) => {
       return '未签到';
   }
 };
+
+const exportToExcel = () => {
+  const data = attendances.map(attendance => ({
+    '姓名': attendance.studentName,
+    '性别': attendance.gender,
+    '课程名称': attendance.courseName,
+    '公司名称': attendance.company,
+    '联系方式': attendance.contact,
+    '签到时间': formatDate(attendance.attendanceTime),
+    '费用': attendance.fee === 0 ? '无需支付' : attendance.fee,
+    '费用状态': getFeeStatusLabel(attendance.feeStatus),
+    '签到状态': getSignInStatusLabel(attendance.signInStatus)
+  }));
+  
+  const worksheet = XLSX.utils.json_to_sheet(data);
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, '签到数据');
+  const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+  const blob = new Blob([excelBuffer], { type: 'application/octet-stream' });
+  saveAs(blob, 'attendances.xlsx');
+};
+
+onMounted(() => {
+  fetchAttendances();
+});
 </script>
 
 <style scoped>

@@ -24,6 +24,7 @@
         <el-button type="primary" @click="fetchNotifications">查询</el-button>
         <el-button @click="resetFilters">清空</el-button>
         <el-button type="primary" @click="openAddNotificationForm">新增通知</el-button>
+        <el-button type="primary" @click="exportToExcel">导出为Excel</el-button>
       </el-col>
     </el-row>
 
@@ -76,6 +77,8 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue';
 import NotificationForm from '../views/form/NotificationForm.vue';
+import * as XLSX from 'xlsx';
+import { saveAs } from 'file-saver';
 
 const searchQuery = ref('');
 const filterType = ref('');
@@ -189,6 +192,27 @@ const getStatusLabel = (status) => {
       return '待发送';
   }
 };
+
+const exportToExcel = () => {
+  const data = notifications.map(notification => ({
+    '通知类型': getTypeLabel(notification.type),
+    '课程名称': notification.courseName,
+    '通知内容': notification.content,
+    '状态': getStatusLabel(notification.status),
+    '发送时间': formatDate(notification.sendTime)
+  }));
+  
+  const worksheet = XLSX.utils.json_to_sheet(data);
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, '通知数据');
+  const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+  const blob = new Blob([excelBuffer], { type: 'application/octet-stream' });
+  saveAs(blob, 'notifications.xlsx');
+};
+
+onMounted(() => {
+  fetchNotifications();
+});
 </script>
 
 <style scoped>
