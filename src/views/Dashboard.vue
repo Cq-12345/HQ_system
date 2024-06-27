@@ -11,7 +11,7 @@
             <div class="count">24</div>
           </div>
           <div class="btn">
-            <el-button type="primary" @click="goToPage('ApplicationManagement')">查看详情</el-button>
+            <el-button type="primary" @click="openApplicationForm">新增培训申请</el-button>
           </div>
         </el-card>
       </el-col>
@@ -25,7 +25,7 @@
             <div class="count">15</div>
           </div>
           <div class="btn">
-            <el-button type="primary" @click="goToPage('CourseManagement')">查看详情</el-button>
+            <el-button type="primary" @click="openCourseForm">新增课程</el-button>
           </div>
         </el-card>
       </el-col>
@@ -39,7 +39,7 @@
             <div class="count">8</div>
           </div>
           <div class="btn">
-            <el-button type="primary" @click="goToPage('LecturerManagement')">查看详情</el-button>
+            <el-button type="primary" @click="openLectureForm">新增讲师</el-button>
           </div>
         </el-card>
       </el-col>
@@ -53,7 +53,7 @@
             <div class="count">120</div>
           </div>
           <div class="btn">
-            <el-button type="primary" @click="goToPage('StudentManagement')">查看详情</el-button>
+            <el-button type="primary" @click="openStudentForm">新增学员</el-button>
           </div>
         </el-card>
       </el-col>
@@ -70,7 +70,7 @@
             <div class="count">5</div>
           </div>
           <div class="btn">
-            <el-button type="primary" @click="goToPage('NotificationManagement')">查看详情</el-button>
+            <el-button type="primary" @click="openNotificationForm">新增通知</el-button>
           </div>
         </el-card>
       </el-col>
@@ -84,21 +84,7 @@
             <div class="count">50</div>
           </div>
           <div class="btn">
-            <el-button type="primary" @click="goToPage('EnrollmentManagement')">查看详情</el-button>
-          </div>
-        </el-card>
-      </el-col>
-      <el-col :span="6">
-        <el-card>
-          <div class="box">
-            <div class="text item">
-              <i class="el-icon-s-data"></i>
-              <span>签到和费用管理</span>
-            </div>
-            <div class="count">45</div>
-          </div>
-          <div class="btn">
-            <el-button type="primary" @click="goToPage('AttendanceManagement')">查看详情</el-button>
+            <el-button type="primary" @click="openEnrollmentForm">新增报名</el-button>
           </div>
         </el-card>
       </el-col>
@@ -112,22 +98,81 @@
             <div class="count">30</div>
           </div>
           <div class="btn">
-            <el-button type="primary" @click="goToPage('EvaluationManagement')">查看详情</el-button>
+            <el-button type="primary" @click="openEvaluationForm">新增评价</el-button>
+          </div>
+        </el-card>
+      </el-col>
+      <el-col :span="6">
+        <el-card>
+          <div class="box">
+            <div class="text item">
+              <i class="el-icon-s-data"></i>
+              <span>统计培训收入</span>
+            </div>
+            <div class="count">45</div>
+          </div>
+          <div class="btn">
+            <el-button type="primary" @click="openIncomeForm">统计培训收入</el-button>
           </div>
         </el-card>
       </el-col>
     </el-row>
+
+    <!-- 引用表单组件 -->
+    <application-form ref="applicationForm" @refresh="fetchApplications" />
+    <course-form ref="courseForm" @refresh="fetchCourses" />
+    <lecture-form ref="lectureForm" @refresh="fetchLectures" />
+    <student-form ref="studentForm" @refresh="fetchStudents" />
+    <notification-form ref="notificationForm" @refresh="fetchNotifications" />
+    <enrollment-form ref="enrollmentForm" @refresh="fetchEnrollments" />
+    <evaluation-form ref="evaluationForm" @refresh="fetchEvaluations" />
+
   </div>
 </template>
 
 <script setup>
-import { useRouter } from 'vue-router';
+import { ref } from 'vue';
+import ApplicationForm from '../views/form/ApplicationForm.vue';
+import CourseForm from '../views/form/CourseForm.vue';
+import LectureForm from '../views/form/LectureForm.vue';
+import StudentForm from '../views/form/StudentForm.vue';
+import NotificationForm from '../views/form/NotificationForm.vue';
+import EnrollmentForm from '../views/form/EnrollmentForm.vue';
+import EvaluationForm from '../views/form/EvaluationForm.vue';
 
-const router = useRouter();
+const applicationForm = ref(null);
+const courseForm = ref(null);
+const lectureForm = ref(null);
+const studentForm = ref(null);
+const notificationForm = ref(null);
+const enrollmentForm = ref(null);
+const evaluationForm = ref(null);
 
-const goToPage = (page) => {
-  router.push({ name: page });
+const openApplicationForm = () => {
+  applicationForm.value.openForm();
 };
+const openCourseForm = () => {
+  courseForm.value.openForm();
+};
+const openLectureForm = () => {
+  lectureForm.value.openForm();
+};
+const openStudentForm = () => {
+  studentForm.value.openForm();
+};
+const openNotificationForm = () => {
+  notificationForm.value.openForm();
+};
+const openEnrollmentForm = () => {
+  enrollmentForm.value.openForm();
+};
+const openEvaluationForm = () => {
+  evaluationForm.value.openForm();
+};
+const openIncomeForm = () => {
+  // 打开统计培训收入表单的逻辑
+};
+
 </script>
 
 <style scoped>
