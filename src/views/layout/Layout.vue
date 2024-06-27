@@ -1,16 +1,16 @@
 <template>
   <el-container style="height: 100vh;">
     <!-- 顶部导航栏 -->
-    <el-header style="background-color: #409EFF; color: white; display: flex; align-items: center; justify-content: space-between; padding: 0 20px;">
-      <div>
-        <img src="/logo.jpg" alt="Company Logo" style="height: 30px; margin-right: 10px;" />
-        <el-link :underline="false" href="/" style="color: white; font-size: 24px;">HQ 培训管理系统</el-link>
+    <el-header class="header">
+      <el-button class="menu-button" icon="el-icon-menu" @click="toggleAside" />
+      <div class="header-center">
+        <span class="title">HQ 培训管理系统</span>
       </div>
-      <div>
+      <div class="header-right">
         <el-dropdown>
           <span class="el-dropdown-link">
             <el-avatar :size="32" src="/logo.jpg"></el-avatar>
-            <span style="margin-left: 10px;">用户名</span>
+            <span class="username">admin</span>
           </span>
           <el-dropdown-menu>
             <el-dropdown-item>个人中心</el-dropdown-item>
@@ -22,7 +22,7 @@
 
     <el-container>
       <!-- 侧边栏 -->
-      <el-aside width="200px" style="background-color: #2d3a4b;">
+      <el-aside class="aside" v-show="showAside">
         <el-menu :default-active="activeMenu" class="el-menu-vertical-demo" @select="handleMenuSelect" mode="vertical" background-color="#2d3a4b" text-color="#fff" active-text-color="#ffd04b">
           <el-menu-item index="Dashboard">
             <i class="el-icon-menu"></i>
@@ -68,7 +68,7 @@
       </el-aside>
 
       <!-- 主内容区 -->
-      <el-main style="padding: 20px; background-color: #f0f2f5;">
+      <el-main class="main">
         <router-view></router-view> <!-- 在这里插入子页面的内容 -->
       </el-main>
     </el-container>
@@ -76,34 +76,105 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 
 const router = useRouter();
 const activeMenu = ref('Dashboard');
+const showAside = ref(window.innerWidth > 768);
 
 const handleMenuSelect = (key) => {
   activeMenu.value = key;
   router.push({ name: key });
 };
+
+const toggleAside = () => {
+  showAside.value = !showAside.value;
+};
+
+onMounted(() => {
+  window.addEventListener('resize', () => {
+    showAside.value = window.innerWidth > 768;
+  });
+});
 </script>
 
 <style scoped>
-.el-header {
+.header {
   background-color: #409EFF;
   color: white;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
 }
 
-.el-menu-vertical-demo {
-  background-color: #2d3a4b;
+.header-center {
+  flex-grow: 1;
+  text-align: center;
 }
 
-.el-menu-item {
+.title {
   color: white;
+  font-size: 15px;
+  line-height: 64px;
 }
 
-.el-main {
+.header-right {
+  display: flex;
+  align-items: center;
+}
+
+.username {
+  margin-left: 10px;
+}
+
+.menu-button {
+  display: block;
+}
+
+.aside {
+  background-color: #2d3a4b;
+  width: 200px;
+}
+
+.main {
   padding: 20px;
   background-color: #f0f2f5;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .header {
+    flex-direction: row;
+  }
+
+  .header-center {
+    order: 1;
+    flex-grow: 1;
+  }
+
+  .header-right {
+    order: 2;
+  }
+
+  .menu-button {
+    order: 0;
+  }
+
+  .aside {
+    width: 100%;
+    position: absolute;
+    z-index: 1000;
+    height: auto;
+  }
+
+  .main {
+    padding: 10px;
+  }
+
+  .el-menu-vertical-demo {
+    display: block;
+  }
 }
 </style>
