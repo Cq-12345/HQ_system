@@ -186,6 +186,8 @@ const getStarRating = (rating) => {
   return stars.substring(0, rating) + stars.substring(5, 5 + (5 - rating));
 };
 
+// 评价表单引用
+const evaluationForm = ref(null);
 
 // 新增评价
 const addEvaluation = () => {
