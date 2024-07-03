@@ -1,28 +1,37 @@
 <template>
-  <div class="card-wrap">
-    <div class="card-context" v-for="item in items" :key="item.label">
-      <el-card shadow="always">
-        <div class="box">
-          <div class="text item">
-            <i :class="item.icon"></i>
-            <span>{{ item.label }}</span>
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-12">
+        <div class="card-wrap">
+          <div class="card-context" v-for="item in items" :key="item.label">
+            <div class="card shadow-sm">
+              <div class="card-body">
+                <div class="box">
+                  <div class="text item">
+                    <i :class="item.icon"></i>
+                    <span>{{ item.label }}</span>
+                  </div>
+                  <div class="count" v-if="!isMobile">{{ item.count }}</div>
+                </div>
+                <div class="btn">
+                  <button class="btn btn-primary" @click="item.action">{{ item.buttonLabel }}</button>
+                </div>
+              </div>
+            </div>
           </div>
-          <div class="count" v-if="!isMobile">{{ item.count }}</div>
         </div>
-        <div class="btn">
-          <el-button type="primary" @click="item.action">{{ item.buttonLabel }}</el-button>
-        </div>
-      </el-card>
+      </div>
     </div>
+
+    <!-- 引用表单组件 -->
+    <application-form ref="applicationForm" @refresh="fetchApplications" />
+    <course-form ref="courseForm" @refresh="fetchCourses" />
+    <lecture-form ref="lectureForm" @refresh="fetchLectures" />
+    <student-form ref="studentForm" @refresh="fetchStudents" />
+    <notification-form ref="notificationForm" @refresh="fetchNotifications" />
+    <enrollment-form ref="enrollmentForm" @refresh="fetchEnrollments" />
+    <evaluation-form ref="evaluationForm" @refresh="fetchEvaluations" />
   </div>
-  <!-- 引用表单组件 -->
-  <application-form ref="applicationForm" @refresh="fetchApplications" />
-  <course-form ref="courseForm" @refresh="fetchCourses" />
-  <lecture-form ref="lectureForm" @refresh="fetchLectures" />
-  <student-form ref="studentForm" @refresh="fetchStudents" />
-  <notification-form ref="notificationForm" @refresh="fetchNotifications" />
-  <enrollment-form ref="enrollmentForm" @refresh="fetchEnrollments" />
-  <evaluation-form ref="evaluationForm" @refresh="fetchEvaluations" />
 </template>
 
 <script setup>
@@ -78,56 +87,56 @@ const items = [
     label: '培训申请管理',
     count: 24,
     buttonLabel: '新增培训申请',
-    icon: 'el-icon-document',
+    icon: 'bi bi-file-earmark-text',
     action: openApplicationForm
   },
   {
     label: '课程管理',
     count: 15,
     buttonLabel: '新增课程',
-    icon: 'el-icon-notebook-2',
+    icon: 'bi bi-book',
     action: openCourseForm
   },
   {
     label: '讲师管理',
     count: 8,
     buttonLabel: '新增讲师',
-    icon: 'el-icon-user',
+    icon: 'bi bi-person',
     action: openLectureForm
   },
   {
     label: '学员管理',
     count: 120,
     buttonLabel: '新增学员',
-    icon: 'el-icon-user-solid',
+    icon: 'bi bi-people',
     action: openStudentForm
   },
   {
     label: '通知管理',
     count: 5,
     buttonLabel: '新增通知',
-    icon: 'el-icon-bell',
+    icon: 'bi bi-bell',
     action: openNotificationForm
   },
   {
     label: '报名管理',
     count: 50,
     buttonLabel: '新增报名',
-    icon: 'el-icon-edit-outline',
+    icon: 'bi bi-pencil-square',
     action: openEnrollmentForm
   },
   {
     label: '培训评价和统计',
     count: 30,
     buttonLabel: '新增评价',
-    icon: 'el-icon-star-on',
+    icon: 'bi bi-star',
     action: openEvaluationForm
   },
   {
     label: '统计培训收入',
     count: 45,
     buttonLabel: '统计培训收入',
-    icon: 'el-icon-s-data',
+    icon: 'bi bi-bar-chart',
     action: openIncomeForm
   }
 ];
@@ -150,7 +159,7 @@ onMounted(() => {
   flex-direction: column;
 }
 
-.el-card {
+.card {
   width: 100%;
 }
 

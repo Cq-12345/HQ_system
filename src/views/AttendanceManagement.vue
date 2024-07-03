@@ -1,71 +1,70 @@
 <template>
-  <div>
+  <div class="container-fluid">
     <!-- 搜索和筛选栏 -->
-    <el-row :gutter="20" style="margin-bottom: 20px;">
-      <el-col :span="6">
-        <el-input v-model="searchQuery" placeholder="请输入学员姓名或课程名称" />
-      </el-col>
-      <el-col :span="4">
-        <el-select v-model="filterStatus" placeholder="选择签到状态">
-          <el-option label="全部" value=""></el-option>
-          <el-option label="未签到" value="not_signed_in"></el-option>
-          <el-option label="已签到" value="signed_in"></el-option>
-        </el-select>
-      </el-col>
-      <el-col :span="4">
-        <el-button type="primary" @click="fetchAttendances">查询</el-button>
-        <el-button @click="resetFilters">清空</el-button>
-      </el-col>
-      <el-col :span="10" style="text-align: right;">
-        <el-button type="primary" @click="exportToExcel">导出为Excel</el-button>
-      </el-col>
-    </el-row>
+    <div class="row mb-3 align-items-center">
+      <div class="col-md-5">
+        <input v-model="searchQuery" class="form-control" placeholder="请输入学员姓名或课程名称">
+      </div>
+      <div class="col-md-3">
+        <select v-model="filterStatus" class="form-select">
+          <option value="">选择签到状态</option>
+          <option value="not_signed_in">未签到</option>
+          <option value="signed_in">已签到</option>
+        </select>
+      </div>
+      <div class="col-md-4 text-end">
+        <button class="btn btn-primary me-2" @click="fetchAttendances">查询</button>
+        <button class="btn btn-secondary me-2" @click="resetFilters">清空</button>
+        <button class="btn btn-success" @click="exportToExcel">导出为Excel</button>
+      </div>
+    </div>
 
     <!-- 报名信息列表 -->
-    <el-table :data="attendances" border>
-      <el-table-column prop="studentName" label="姓名" width="120"></el-table-column>
-      <el-table-column prop="gender" label="性别" width="70"></el-table-column>
-      <el-table-column prop="courseName" label="课程名称" width="150"></el-table-column>
-      <el-table-column prop="company" label="公司名称" width="150"></el-table-column>
-      <el-table-column prop="contact" label="联系方式" width="150"></el-table-column>
-      <el-table-column prop="attendanceTime" label="签到时间" width="150">
-        <template v-slot="scope">
-          {{ formatDate(scope.row.attendanceTime) }}
-        </template>
-      </el-table-column>
-      <el-table-column prop="fee" label="费用" width="100">
-        <template v-slot="scope">
-          {{ scope.row.fee === 0 ? '无需支付' : scope.row.fee }}
-        </template>
-      </el-table-column>
-      <el-table-column prop="feeStatus" label="费用状态" width="100">
-        <template v-slot="scope">
-          <el-tag :type="getFeeStatusTagType(scope.row.feeStatus)">{{ getFeeStatusLabel(scope.row.feeStatus) }}</el-tag>
-        </template>
-      </el-table-column>
-      <el-table-column prop="signInStatus" label="签到状态" width="100">
-        <template v-slot="scope">
-          <el-tag :type="getSignInStatusTagType(scope.row.signInStatus)">{{ getSignInStatusLabel(scope.row.signInStatus) }}</el-tag>
-        </template>
-      </el-table-column>
-      <el-table-column label="操作">
-        <template v-slot="scope">
-          <el-button type="text" size="small" :disabled="scope.row.signInStatus === 'signed_in'" @click="signIn(scope.row)">签到</el-button>
-        </template>
-      </el-table-column>
-    </el-table>
+    <table class="table table-bordered table-hover align-middle">
+      <thead>
+        <tr>
+          <th>姓名</th>
+          <th>性别</th>
+          <th>课程名称</th>
+          <th>公司名称</th>
+          <th>联系方式</th>
+          <th>签到时间</th>
+          <th>费用</th>
+          <th>费用状态</th>
+          <th>签到状态</th>
+          <th>操作</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="attendance in attendances" :key="attendance.id">
+          <td>{{ attendance.studentName }}</td>
+          <td>{{ attendance.gender }}</td>
+          <td>{{ attendance.courseName }}</td>
+          <td>{{ attendance.company }}</td>
+          <td>{{ attendance.contact }}</td>
+          <td>{{ formatDate(attendance.attendanceTime) }}</td>
+          <td>{{ attendance.fee === 0 ? '无需支付' : attendance.fee }}</td>
+          <td>
+            <span :class="getFeeStatusBadgeClass(attendance.feeStatus)">{{ getFeeStatusLabel(attendance.feeStatus) }}</span>
+          </td>
+          <td>
+            <span :class="getSignInStatusBadgeClass(attendance.signInStatus)">{{ getSignInStatusLabel(attendance.signInStatus) }}</span>
+          </td>
+          <td>
+            <button class="btn btn-outline-primary btn-sm" :disabled="attendance.signInStatus === 'signed_in'" @click="signIn(attendance)">签到</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
 
     <!-- 分页功能 -->
-    <el-pagination
-      style="margin-top: 20px; text-align: center;"
-      background
-      layout="total, sizes, prev, pager, next, jumper"
-      :total="totalAttendances"
-      :page-sizes="[5, 10, 15, 20]"
-      :page-size="pageSize"
-      @size-change="handleSizeChange"
-      @current-change="handleCurrentChange">
-    </el-pagination>
+    <div class="d-flex justify-content-center mt-3">
+      <ul class="pagination">
+        <li class="page-item" v-for="page in totalPages" :key="page" :class="{ active: page === currentPage }">
+          <a class="page-link" @click="handleCurrentChange(page)">{{ page }}</a>
+        </li>
+      </ul>
+    </div>
 
     <!-- 签到表单 -->
     <attendance-form ref="attendanceForm" @refresh="fetchAttendances" />
@@ -73,7 +72,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue';
+import { ref, reactive, onMounted, computed } from 'vue';
 import AttendanceForm from '../views/form/AttendanceForm.vue';
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
@@ -131,15 +130,15 @@ const formatDate = (dateStr) => {
   return new Date(dateStr).toLocaleDateString(undefined, options);
 };
 
-const getFeeStatusTagType = (status) => {
+const getFeeStatusBadgeClass = (status) => {
   switch (status) {
     case 'paid':
-      return 'success';
+      return 'badge bg-success';
     case 'no_payment_required':
-      return 'info';
+      return 'badge bg-info';
     case 'not_paid':
     default:
-      return 'danger';
+      return 'badge bg-danger';
   }
 };
 
@@ -155,13 +154,13 @@ const getFeeStatusLabel = (status) => {
   }
 };
 
-const getSignInStatusTagType = (status) => {
+const getSignInStatusBadgeClass = (status) => {
   switch (status) {
     case 'signed_in':
-      return 'success';
+      return 'badge bg-success';
     case 'not_signed_in':
     default:
-      return 'warning';
+      return 'badge bg-warning text-dark';
   }
 };
 
@@ -174,6 +173,10 @@ const getSignInStatusLabel = (status) => {
       return '未签到';
   }
 };
+
+const totalPages = computed(() => {
+  return Math.ceil(totalAttendances.value / pageSize.value);
+});
 
 const exportToExcel = () => {
   const data = attendances.map(attendance => ({
@@ -202,29 +205,15 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.box {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+.table td, .table th {
+  vertical-align: middle;
 }
 
-.box .text {
-  display: flex;
-  align-items: center;
+.btn-group .btn {
+  margin-right: 5px;
 }
 
-.box .item i {
-  font-size: 24px;
-  margin-right: 10px;
-}
-
-.count {
-  font-size: 24px;
-  color: #409EFF;
-}
-
-.btn {
-  text-align: right;
-  margin-top: 10px;
+.btn-group .btn:last-child {
+  margin-right: 0;
 }
 </style>

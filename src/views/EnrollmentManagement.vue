@@ -1,74 +1,79 @@
 <template>
-  <div>
+  <div class="container-fluid">
     <!-- 搜索和筛选栏 -->
-    <el-row :gutter="20" style="margin-bottom: 20px;">
-      <el-col :span="6">
-        <el-input v-model="searchQuery" placeholder="请输入学员姓名或课程名称" />
-      </el-col>
-      <el-col :span="4">
-        <el-select v-model="filterStatus" placeholder="选择状态">
-          <el-option label="全部" value=""></el-option>
-          <el-option label="待确认" value="pending"></el-option>
-          <el-option label="已确认" value="confirmed"></el-option>
-        </el-select>
-      </el-col>
-      <el-col :span="4">
-        <el-button type="primary" @click="fetchEnrollments">查询</el-button>
-        <el-button @click="resetFilters">清空</el-button>
-      </el-col>
-      <el-col :span="10" style="text-align: right;">
-        <el-button type="primary" @click="saveToExcel">保存到Excel</el-button>
-        <el-button type="primary" @click="openAddEnrollmentForm">新增报名</el-button>
-      </el-col>
-    </el-row>
+    <div class="row mb-3 align-items-center">
+      <div class="col-md-5">
+        <input v-model="searchQuery" class="form-control" placeholder="请输入学员姓名或课程名称">
+      </div>
+      <div class="col-md-3">
+        <select v-model="filterStatus" class="form-select">
+          <option value="">全部</option>
+          <option value="pending">待确认</option>
+          <option value="confirmed">已确认</option>
+        </select>
+      </div>
+      <div class="col-md-4 text-end">
+        <button class="btn btn-primary me-2" @click="fetchEnrollments">查询</button>
+        <button class="btn btn-secondary me-2" @click="resetFilters">清空</button>
+        <button class="btn btn-success me-2" @click="saveToExcel">保存到Excel</button>
+        <button class="btn btn-primary" @click="openAddEnrollmentForm">新增报名</button>
+      </div>
+    </div>
 
     <!-- 报名信息列表 -->
-    <el-table :data="enrollments" border>
-      <el-table-column prop="studentName" label="姓名" width="80"></el-table-column>
-      <el-table-column prop="gender" label="性别" width="60"></el-table-column>
-      <el-table-column prop="courseName" label="课程名称" width="120"></el-table-column>
-      <el-table-column prop="company" label="公司名称" width="120"></el-table-column>
-      <el-table-column prop="position" label="工作岗位" width="120"></el-table-column>
-      <el-table-column prop="skillLevel" label="技术水平" width="90"></el-table-column>
-      <el-table-column prop="contact" label="联系方式" width="135"></el-table-column>
-      <el-table-column prop="fillTime" label="填写时间" width="150">
-        <template v-slot="scope">
-          {{ formatDate(scope.row.fillTime) }}
-        </template>
-      </el-table-column>
-      <el-table-column prop="status" label="状态" width="90">
-        <template v-slot="scope">
-          <el-tag :type="getStatusTagType(scope.row.status)">{{ getStatusLabel(scope.row.status) }}</el-tag>
-        </template>
-      </el-table-column>
-      <el-table-column label="操作">
-        <template v-slot="scope">
-          <el-button type="text" size="small" @click="confirmEnrollment(scope.row)">确认</el-button>
-          <el-button type="text" size="small" @click="openEditEnrollmentForm(scope.row)">编辑</el-button>
-          <el-button type="text" size="small" @click="deleteEnrollment(scope.row)">删除</el-button>
-        </template>
-      </el-table-column>
-    </el-table>
+    <table class="table table-bordered table-hover align-middle">
+      <thead>
+        <tr>
+          <th>姓名</th>
+          <th>性别</th>
+          <th>课程名称</th>
+          <th>公司名称</th>
+          <th>工作岗位</th>
+          <th>技术水平</th>
+          <th>联系方式</th>
+          <th>填写时间</th>
+          <th>状态</th>
+          <th>操作</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="enrollment in enrollments" :key="enrollment.id">
+          <td>{{ enrollment.studentName }}</td>
+          <td>{{ enrollment.gender }}</td>
+          <td>{{ enrollment.courseName }}</td>
+          <td>{{ enrollment.company }}</td>
+          <td>{{ enrollment.position }}</td>
+          <td>{{ enrollment.skillLevel }}</td>
+          <td>{{ enrollment.contact }}</td>
+          <td>{{ formatDate(enrollment.fillTime) }}</td>
+          <td>
+            <span :class="getStatusBadgeClass(enrollment.status)">{{ getStatusLabel(enrollment.status) }}</span>
+          </td>
+          <td>
+            <button class="btn btn-outline-success btn-sm me-1" @click="confirmEnrollment(enrollment)">确认</button>
+            <button class="btn btn-outline-primary btn-sm me-1" @click="openEditEnrollmentForm(enrollment)">编辑</button>
+            <button class="btn btn-outline-danger btn-sm" @click="deleteEnrollment(enrollment)">删除</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
 
     <!-- 分页功能 -->
-    <el-pagination
-      style="margin-top: 20px; text-align: center;"
-      background
-      layout="total, sizes, prev, pager, next, jumper"
-      :total="totalEnrollments"
-      :page-sizes="[5, 10, 15, 20]"
-      :page-size="pageSize"
-      @size-change="handleSizeChange"
-      @current-change="handleCurrentChange">
-    </el-pagination>
+    <div class="d-flex justify-content-center mt-3">
+      <ul class="pagination">
+        <li class="page-item" v-for="page in totalPages" :key="page" :class="{ active: page === currentPage }">
+          <a class="page-link" @click="handleCurrentChange(page)">{{ page }}</a>
+        </li>
+      </ul>
+    </div>
 
     <!-- 报名表单对话框 -->
-    <EnrollmentForm ref="enrollmentForm" @refresh="fetchEnrollments" />
+    <enrollment-form ref="enrollmentForm" @refresh="fetchEnrollments" />
   </div>
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue';
+import { ref, reactive, onMounted, computed } from 'vue';
 import EnrollmentForm from '../views/form/EnrollmentForm.vue';
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
@@ -155,13 +160,13 @@ const formatDate = (dateStr) => {
   return new Date(dateStr).toLocaleDateString(undefined, options);
 };
 
-const getStatusTagType = (status) => {
+const getStatusBadgeClass = (status) => {
   switch (status) {
     case 'confirmed':
-      return 'success';
+      return 'badge bg-success';
     case 'pending':
     default:
-      return 'warning';
+      return 'badge bg-warning text-dark';
   }
 };
 
@@ -174,8 +179,40 @@ const getStatusLabel = (status) => {
       return '待确认';
   }
 };
+
+const totalPages = computed(() => {
+  return Math.ceil(totalEnrollments.value / pageSize.value);
+});
+
+onMounted(() => {
+  fetchEnrollments();
+});
 </script>
 
 <style scoped>
-/* 样式定义 */
+.table td, .table th {
+  vertical-align: middle;
+}
+
+.btn-group .btn {
+  margin-right: 5px;
+}
+
+.btn-group .btn:last-child {
+  margin-right: 0;
+}
+
+.badge {
+  font-size: 0.75rem;
+  padding: 0.25em 0.4em;
+}
+
+.pagination .page-item.active .page-link {
+  background-color: #007bff;
+  border-color: #007bff;
+}
+
+.pagination .page-item .page-link {
+  color: #007bff;
+}
 </style>

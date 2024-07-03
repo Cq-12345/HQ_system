@@ -1,53 +1,60 @@
 <template>
-  <div>
-    <!-- 页面特定内容 -->
-    <el-row :gutter="20" style="margin-bottom: 20px;">
-      <el-col :span="8">
-        <el-input v-model="searchName" placeholder="请输入课程名称" />
-      </el-col>
-      <el-col :span="4">
-        <el-button type="primary" @click="fetchData">查询</el-button>
-        <el-button @click="resetSearch">清空</el-button>
-      </el-col>
-      <el-col :span="12" style="text-align: right;">
-        <el-button type="danger" @click="deleteSelected">批量删除</el-button>
-        <el-button type="primary" @click="openAddCourseForm">新增课程</el-button>
-        <el-button type="primary" @click="exportToExcel">导出为Excel</el-button>
-      </el-col>
-    </el-row>
+  <div class="container-fluid">
+    <!-- 搜索和筛选栏 -->
+    <div class="row mb-3 align-items-center">
+      <div class="col-md-5">
+        <input v-model="searchName" class="form-control" placeholder="请输入课程名称">
+      </div>
+      <div class="col-md-3">
+        <button class="btn btn-primary me-2" @click="fetchData">查询</button>
+        <button class="btn btn-secondary" @click="resetSearch">清空</button>
+      </div>
+      <div class="col-md-4 text-end">
+        <button class="btn btn-danger me-2" @click="deleteSelected">批量删除</button>
+        <button class="btn btn-success me-2" @click="openAddCourseForm">新增课程</button>
+        <button class="btn btn-info" @click="exportToExcel">导出为Excel</button>
+      </div>
+    </div>
 
-    <el-table :data="courses" border>
-      <el-table-column type="selection" width="55"></el-table-column>
-      <el-table-column prop="courseName" label="课程名称" sortable width="150"></el-table-column>
-      <el-table-column prop="startTime" label="开始时间" sortable width="150">
-        <template v-slot="scope">
-          {{ formatDate(scope.row.startTime) }}
-        </template>
-      </el-table-column>
-      <el-table-column prop="endTime" label="结束时间" sortable width="150">
-        <template v-slot="scope">
-          {{ formatDate(scope.row.endTime) }}
-        </template>
-      </el-table-column>
-      <el-table-column prop="lecturerName" label="讲师" sortable width="120"></el-table-column>
-      <el-table-column label="操作">
-        <template v-slot="scope">
-          <el-button type="text" size="small" @click="openEditCourseForm(scope.row)">编辑</el-button>
-          <el-button type="text" size="small" @click="deleteCourse(scope.row)">删除</el-button>
-        </template>
-      </el-table-column>
-    </el-table>
+    <!-- 课程列表 -->
+    <table class="table table-bordered table-hover align-middle">
+      <thead>
+        <tr>
+          <th scope="col">
+            <input type="checkbox" @click="selectAll" />
+          </th>
+          <th scope="col">课程名称</th>
+          <th scope="col">开始时间</th>
+          <th scope="col">结束时间</th>
+          <th scope="col">讲师</th>
+          <th scope="col">操作</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="course in courses" :key="course.id">
+          <td>
+            <input type="checkbox" v-model="selectedCourses" :value="course.id" />
+          </td>
+          <td>{{ course.courseName }}</td>
+          <td>{{ formatDate(course.startTime) }}</td>
+          <td>{{ formatDate(course.endTime) }}</td>
+          <td>{{ course.lecturerName }}</td>
+          <td>
+            <button class="btn btn-outline-primary btn-sm" @click="openEditCourseForm(course)">编辑</button>
+            <button class="btn btn-outline-danger btn-sm" @click="deleteCourse(course)">删除</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
 
-    <el-pagination
-      style="margin-top: 20px; text-align: center;"
-      background
-      layout="total, sizes, prev, pager, next, jumper"
-      :total="totalCourses"
-      :page-sizes="[5, 10, 15, 20]"
-      :page-size="pageSize"
-      @size-change="handleSizeChange"
-      @current-change="handleCurrentChange">
-    </el-pagination>
+    <!-- 分页功能 -->
+    <div class="d-flex justify-content-center mt-3">
+      <ul class="pagination">
+        <li class="page-item" v-for="page in totalPages" :key="page" :class="{ active: page === currentPage }">
+          <a class="page-link" @click="handleCurrentChange(page)">{{ page }}</a>
+        </li>
+      </ul>
+    </div>
 
     <!-- 引入CourseForm组件 -->
     <CourseForm ref="courseForm" @refresh="fetchData" />
@@ -55,7 +62,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue';
+import { ref, reactive, onMounted, computed } from 'vue';
 import CourseForm from '../views/form/CourseForm.vue';
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
@@ -64,6 +71,7 @@ const searchName = ref('');
 const pageSize = ref(5);
 const currentPage = ref(1);
 const totalCourses = ref(0);
+const selectedCourses = ref([]);
 
 const courses = reactive([
   // 示例数据
@@ -97,8 +105,16 @@ const deleteCourse = (course) => {
 };
 
 const deleteSelected = () => {
-  console.log('Delete selected courses');
+  console.log('Delete selected courses', selectedCourses.value);
   // 批量删除逻辑
+};
+
+const selectAll = () => {
+  if (selectedCourses.value.length === courses.length) {
+    selectedCourses.value = [];
+  } else {
+    selectedCourses.value = courses.map(course => course.id);
+  }
 };
 
 const handleSizeChange = (size) => {
@@ -118,13 +134,24 @@ const formatDate = (dateStr) => {
   return new Date(dateStr).toLocaleDateString(undefined, options);
 };
 
+const totalPages = computed(() => {
+  return Math.ceil(totalCourses.value / pageSize.value);
+});
+
 const exportToExcel = () => {
-  const worksheet = XLSX.utils.json_to_sheet(courses);
+  const data = courses.map(course => ({
+    '课程名称': course.courseName,
+    '开始时间': formatDate(course.startTime),
+    '结束时间': formatDate(course.endTime),
+    '讲师': course.lecturerName,
+  }));
+  
+  const worksheet = XLSX.utils.json_to_sheet(data);
   const workbook = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(workbook, worksheet, '课程数据');
   const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
-  const data = new Blob([excelBuffer], { type: 'application/octet-stream' });
-  saveAs(data, 'courses.xlsx');
+  const blob = new Blob([excelBuffer], { type: 'application/octet-stream' });
+  saveAs(blob, 'courses.xlsx');
 };
 
 onMounted(() => {
@@ -133,29 +160,19 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.box {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+.table td, .table th {
+  vertical-align: middle;
 }
 
-.box .text {
-  display: flex;
-  align-items: center;
+.btn-group .btn {
+  margin-right: 5px;
 }
 
-.box .item i {
-  font-size: 24px;
-  margin-right: 10px;
+.btn-group .btn:last-child {
+  margin-right: 0;
 }
 
-.count {
-  font-size: 24px;
-  color: #409EFF;
-}
-
-.btn {
-  text-align: right;
-  margin-top: 10px;
+.btn-outline-primary, .btn-outline-danger {
+  margin-right: 5px;
 }
 </style>

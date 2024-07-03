@@ -1,44 +1,52 @@
 <template>
-  <div>
-    <!-- 页面特定内容 -->
-    <el-row :gutter="20" style="margin-bottom: 20px;">
-      <el-col :span="8">
-        <el-input v-model="searchName" placeholder="请输入学员姓名" />
-      </el-col>
-      <el-col :span="4">
-        <el-button type="primary" @click="fetchData">查询</el-button>
-        <el-button @click="resetSearch">清空</el-button>
-      </el-col>
-      <el-col :span="12" style="text-align: right;">
-        <el-button type="danger" @click="deleteSelected">批量删除</el-button>
-        <el-button type="primary" @click="openAddStudentForm">新增学员</el-button>
-        <el-button type="primary" @click="exportToExcel">导出为Excel</el-button>
-      </el-col>
-    </el-row>
+  <div class="container-fluid">
+    <!-- 搜索和筛选栏 -->
+    <div class="row mb-3 align-items-center">
+      <div class="col-md-8">
+        <input v-model="searchName" class="form-control" placeholder="请输入学员姓名">
+      </div>
+      <div class="col-md-4 text-end">
+        <button class="btn btn-primary me-2" @click="fetchData">查询</button>
+        <button class="btn btn-secondary me-2" @click="resetSearch">清空</button>
+        <button class="btn btn-danger me-2" @click="deleteSelected">批量删除</button>
+        <button class="btn btn-success me-2" @click="openAddStudentForm">新增学员</button>
+        <button class="btn btn-primary" @click="exportToExcel">导出为Excel</button>
+      </div>
+    </div>
 
-    <el-table :data="students" border>
-      <el-table-column type="selection" width="55"></el-table-column>
-      <el-table-column prop="name" label="姓名" sortable width="120"></el-table-column>
-      <el-table-column prop="gender" label="性别" sortable width="100"></el-table-column>
-      <el-table-column prop="contact" label="联系方式" sortable width="150"></el-table-column>
-      <el-table-column label="操作">
-        <template v-slot="scope">
-          <el-button type="text" size="small" @click="openEditStudentForm(scope.row)">编辑</el-button>
-          <el-button type="text" size="small" @click="deleteStudent(scope.row)">删除</el-button>
-        </template>
-      </el-table-column>
-    </el-table>
+    <!-- 学员信息列表 -->
+    <table class="table table-bordered table-hover align-middle">
+      <thead>
+        <tr>
+          <th scope="col">选择</th>
+          <th scope="col">姓名</th>
+          <th scope="col">性别</th>
+          <th scope="col">联系方式</th>
+          <th scope="col">操作</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="student in students" :key="student.id">
+          <td><input type="checkbox"></td>
+          <td>{{ student.name }}</td>
+          <td>{{ student.gender }}</td>
+          <td>{{ student.contact }}</td>
+          <td>
+            <button class="btn btn-outline-primary btn-sm me-2" @click="openEditStudentForm(student)">编辑</button>
+            <button class="btn btn-outline-danger btn-sm" @click="deleteStudent(student)">删除</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
 
-    <el-pagination
-      style="margin-top: 20px; text-align: center;"
-      background
-      layout="total, sizes, prev, pager, next, jumper"
-      :total="totalStudents"
-      :page-sizes="[5, 10, 15, 20]"
-      :page-size="pageSize"
-      @size-change="handleSizeChange"
-      @current-change="handleCurrentChange">
-    </el-pagination>
+    <!-- 分页功能 -->
+    <div class="d-flex justify-content-center mt-3">
+      <ul class="pagination">
+        <li class="page-item" v-for="page in totalPages" :key="page" :class="{ active: page === currentPage }">
+          <a class="page-link" @click="handleCurrentChange(page)">{{ page }}</a>
+        </li>
+      </ul>
+    </div>
 
     <!-- 引入StudentForm组件 -->
     <StudentForm ref="studentForm" @refresh="fetchData" />
@@ -46,7 +54,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue';
+import { ref, reactive, onMounted, computed } from 'vue';
 import StudentForm from '../views/form/StudentForm.vue';
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
@@ -110,13 +118,23 @@ const formatDate = (dateStr) => {
 };
 
 const exportToExcel = () => {
-  const worksheet = XLSX.utils.json_to_sheet(students);
+  const data = students.map(student => ({
+    '姓名': student.name,
+    '性别': student.gender,
+    '联系方式': student.contact,
+  }));
+
+  const worksheet = XLSX.utils.json_to_sheet(data);
   const workbook = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(workbook, worksheet, '学员数据');
   const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
-  const data = new Blob([excelBuffer], { type: 'application/octet-stream' });
-  saveAs(data, 'students.xlsx');
+  const blob = new Blob([excelBuffer], { type: 'application/octet-stream' });
+  saveAs(blob, 'students.xlsx');
 };
+
+const totalPages = computed(() => {
+  return Math.ceil(totalStudents.value / pageSize.value);
+});
 
 onMounted(() => {
   fetchData();
@@ -124,29 +142,24 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.box {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+.table td, .table th {
+  vertical-align: middle;
 }
 
-.box .text {
-  display: flex;
-  align-items: center;
+.pagination .page-item.active .page-link {
+  background-color: #007bff;
+  border-color: #007bff;
 }
 
-.box .item i {
-  font-size: 24px;
-  margin-right: 10px;
+.pagination .page-item .page-link {
+  color: #007bff;
 }
 
-.count {
-  font-size: 24px;
-  color: #409EFF;
+.btn-group .btn {
+  margin-right: 5px;
 }
 
-.btn {
-  text-align: right;
-  margin-top: 10px;
+.btn-group .btn:last-child {
+  margin-right: 0;
 }
 </style>

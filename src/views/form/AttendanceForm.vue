@@ -30,7 +30,7 @@
         </el-select>
       </el-form-item>
       <el-form-item label="签到状态">
-        <el-select v-model="form.signInStatus" disabled>
+        <el-select v-model="form.signInStatus">
           <el-option label="已签到" value="signed_in"></el-option>
           <el-option label="未签到" value="not_signed_in"></el-option>
         </el-select>

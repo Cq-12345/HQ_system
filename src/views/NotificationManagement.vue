@@ -1,73 +1,76 @@
 <template>
-  <div>
+  <div class="container-fluid">
     <!-- 搜索和筛选栏 -->
-    <el-row :gutter="20" style="margin-bottom: 20px;">
-      <el-col :span="6">
-        <el-input v-model="searchQuery" placeholder="请输入通知内容或课程名称" />
-      </el-col>
-      <el-col :span="4">
-        <el-select v-model="filterType" placeholder="选择通知类型">
-          <el-option label="全部" value=""></el-option>
-          <el-option label="课程通知" value="course"></el-option>
-          <el-option label="群发邮件" value="massEmail"></el-option>
-          <el-option label="提醒邮件" value="reminder"></el-option>
-        </el-select>
-      </el-col>
-      <el-col :span="4">
-        <el-select v-model="filterStatus" placeholder="选择状态">
-          <el-option label="全部" value=""></el-option>
-          <el-option label="待发送" value="pending"></el-option>
-          <el-option label="已发送" value="sent"></el-option>
-        </el-select>
-      </el-col>
-      <el-col :span="10" style="text-align: right;">
-        <el-button type="primary" @click="fetchNotifications">查询</el-button>
-        <el-button @click="resetFilters">清空</el-button>
-        <el-button type="primary" @click="openAddNotificationForm">新增通知</el-button>
-        <el-button type="primary" @click="exportToExcel">导出为Excel</el-button>
-      </el-col>
-    </el-row>
+    <div class="row mb-3 align-items-center">
+      <div class="col-md-6">
+        <input v-model="searchQuery" class="form-control" placeholder="请输入通知内容或课程名称">
+      </div>
+      <div class="col-md-3">
+        <select v-model="filterType" class="form-select" placeholder="选择通知类型">
+          <option value="">全部</option>
+          <option value="course">课程通知</option>
+          <option value="massEmail">群发邮件</option>
+          <option value="reminder">提醒邮件</option>
+        </select>
+      </div>
+      <div class="col-md-3">
+        <select v-model="filterStatus" class="form-select" placeholder="选择状态">
+          <option value="">全部</option>
+          <option value="pending">待发送</option>
+          <option value="sent">已发送</option>
+        </select>
+      </div>
+    </div>
+    <div class="row mb-3">
+      <div class="col text-end">
+        <button class="btn btn-primary me-2" @click="fetchNotifications">查询</button>
+        <button class="btn btn-secondary me-2" @click="resetFilters">清空</button>
+        <button class="btn btn-success me-2" @click="openAddNotificationForm">新增通知</button>
+        <button class="btn btn-primary" @click="exportToExcel">导出为Excel</button>
+      </div>
+    </div>
 
     <!-- 通知列表 -->
-    <el-table :data="notifications" border>
-      <el-table-column prop="type" label="通知类型" width="120">
-        <template v-slot="scope">
-          <el-tag :type="getTypeTagType(scope.row.type)">{{ getTypeLabel(scope.row.type) }}</el-tag>
-        </template>
-      </el-table-column>
-      <el-table-column prop="courseName" label="课程名称" width="150"></el-table-column>
-      <el-table-column prop="content" label="通知内容" width="300"></el-table-column>
-      <el-table-column prop="status" label="状态" width="100">
-        <template v-slot="scope">
-          <el-tag :type="getStatusTagType(scope.row.status)">{{ getStatusLabel(scope.row.status) }}</el-tag>
-        </template>
-      </el-table-column>
-      <el-table-column prop="sendTime" label="发送时间" sortable width="150">
-        <template v-slot="scope">
-          {{ formatDate(scope.row.sendTime) }}
-        </template>
-      </el-table-column>
-      <el-table-column label="操作">
-        <template v-slot="scope">
-          <el-button type="text" size="small" @click="openViewNotificationForm(scope.row)">查看</el-button>
-          <el-button type="text" size="small" @click="openEditNotificationForm(scope.row)">编辑</el-button>
-          <el-button type="text" size="small" @click="deleteNotification(scope.row)">删除</el-button>
-          <el-button type="text" size="small" @click="sendEmail(scope.row)" v-if="scope.row.type === 'course'">发送邮件</el-button>
-        </template>
-      </el-table-column>
-    </el-table>
+    <table class="table table-bordered table-hover align-middle">
+      <thead>
+        <tr>
+          <th>通知类型</th>
+          <th>课程名称</th>
+          <th>通知内容</th>
+          <th>状态</th>
+          <th>发送时间</th>
+          <th>操作</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="notification in notifications" :key="notification.id">
+          <td>
+            <span :class="getTypeBadgeClass(notification.type)">{{ getTypeLabel(notification.type) }}</span>
+          </td>
+          <td>{{ notification.courseName }}</td>
+          <td>{{ notification.content }}</td>
+          <td>
+            <span :class="getStatusBadgeClass(notification.status)">{{ getStatusLabel(notification.status) }}</span>
+          </td>
+          <td>{{ formatDate(notification.sendTime) }}</td>
+          <td>
+            <button class="btn btn-outline-primary btn-sm me-1" @click="openViewNotificationForm(notification)">查看</button>
+            <button class="btn btn-outline-secondary btn-sm me-1" @click="openEditNotificationForm(notification)">编辑</button>
+            <button class="btn btn-outline-danger btn-sm" @click="deleteNotification(notification)">删除</button>
+            <button class="btn btn-outline-warning btn-sm" @click="sendEmail(notification)" v-if="notification.type === 'course'">发送邮件</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
 
     <!-- 分页功能 -->
-    <el-pagination
-      style="margin-top: 20px; text-align: center;"
-      background
-      layout="total, sizes, prev, pager, next, jumper"
-      :total="totalNotifications"
-      :page-sizes="[5, 10, 15, 20]"
-      :page-size="pageSize"
-      @size-change="handleSizeChange"
-      @current-change="handleCurrentChange">
-    </el-pagination>
+    <div class="d-flex justify-content-center mt-3">
+      <ul class="pagination">
+        <li class="page-item" v-for="page in totalPages" :key="page" :class="{ active: page === currentPage }">
+          <a class="page-link" @click="handleCurrentChange(page)">{{ page }}</a>
+        </li>
+      </ul>
+    </div>
 
     <!-- 通知详情对话框 -->
     <NotificationForm ref="notificationForm" @refresh="fetchNotifications" />
@@ -75,7 +78,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue';
+import { ref, reactive, onMounted, computed } from 'vue';
 import NotificationForm from '../views/form/NotificationForm.vue';
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
@@ -147,16 +150,16 @@ const formatDate = (dateStr) => {
   return new Date(dateStr).toLocaleDateString(undefined, options);
 };
 
-const getTypeTagType = (type) => {
+const getTypeBadgeClass = (type) => {
   switch (type) {
     case 'course':
-      return 'info';
+      return 'badge bg-info';
     case 'massEmail':
-      return 'success';
+      return 'badge bg-success';
     case 'reminder':
-      return 'warning';
+      return 'badge bg-warning text-dark';
     default:
-      return 'default';
+      return 'badge bg-secondary';
   }
 };
 
@@ -173,13 +176,13 @@ const getTypeLabel = (type) => {
   }
 };
 
-const getStatusTagType = (status) => {
+const getStatusBadgeClass = (status) => {
   switch (status) {
     case 'sent':
-      return 'success';
+      return 'badge bg-success';
     case 'pending':
     default:
-      return 'warning';
+      return 'badge bg-warning text-dark';
   }
 };
 
@@ -201,7 +204,7 @@ const exportToExcel = () => {
     '状态': getStatusLabel(notification.status),
     '发送时间': formatDate(notification.sendTime)
   }));
-  
+
   const worksheet = XLSX.utils.json_to_sheet(data);
   const workbook = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(workbook, worksheet, '通知数据');
@@ -210,35 +213,39 @@ const exportToExcel = () => {
   saveAs(blob, 'notifications.xlsx');
 };
 
+const totalPages = computed(() => {
+  return Math.ceil(totalNotifications.value / pageSize.value);
+});
+
 onMounted(() => {
   fetchNotifications();
 });
 </script>
 
 <style scoped>
-.box {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+.table td, .table th {
+  vertical-align: middle;
 }
 
-.box .text {
-  display: flex;
-  align-items: center;
+.pagination .page-item.active .page-link {
+  background-color: #007bff;
+  border-color: #007bff;
 }
 
-.box .item i {
-  font-size: 24px;
-  margin-right: 10px;
+.pagination .page-item .page-link {
+  color: #007bff;
 }
 
-.count {
-  font-size: 24px;
-  color: #409EFF;
+.badge {
+  font-size: 0.75rem;
+  padding: 0.25em 0.4em;
 }
 
-.btn {
-  text-align: right;
-  margin-top: 10px;
+.btn-group .btn {
+  margin-right: 5px;
+}
+
+.btn-group .btn:last-child {
+  margin-right: 0;
 }
 </style>

@@ -12,6 +12,8 @@
     "test:e2e:dev": "start-server-and-test 'vite dev --port 4173' http://localhost:4173 'cypress open --e2e'"
   },
   "dependencies": {
+    "@popperjs/core": "^2.11.8",
+    "bootstrap": "^5.3.3",
     "echarts": "^5.5.0",
     "element-plus": "^2.7.6",
     "file-saver": "^2.0.5",
