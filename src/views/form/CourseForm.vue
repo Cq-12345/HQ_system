@@ -1,5 +1,5 @@
 <template>
-  <el-dialog v-model="visible" title="课程表单" width="30%" @update:visible="val => visible = val">
+  <el-dialog v-model="visible" title="课程表单" width="350" @update:visible="val => visible = val">
     <el-form :model="form">
       <el-form-item label="课程名称" :rules="[{ required: true, message: '请输入课程名称', trigger: 'blur' }]">
         <el-input v-model="form.courseName"></el-input>

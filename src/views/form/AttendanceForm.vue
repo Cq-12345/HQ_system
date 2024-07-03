@@ -1,5 +1,5 @@
 <template>
-  <el-dialog v-model="visible" title="签到信息" width="30%" @update:visible="val => visible = val">
+  <el-dialog v-model="visible" title="签到信息" width="350" @update:visible="val => visible = val">
     <el-form :model="form">
       <el-form-item label="姓名">
         <el-input v-model="form.studentName" readonly></el-input>

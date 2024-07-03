@@ -1,5 +1,5 @@
 <template>
-  <el-dialog v-model="visible" :title="isViewing ? '报名详情' : '编辑报名'" width="30%" @update:visible="val => visible = val">
+  <el-dialog v-model="visible" :title="isViewing ? '报名详情' : '编辑报名'" width="350" @update:visible="val => visible = val">
     <el-form :model="form">
       <el-form-item label="姓名">
         <el-input v-model="form.studentName" :disabled="isViewing"></el-input>
